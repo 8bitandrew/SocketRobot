@@ -6,7 +6,11 @@ server.connect(("10.0.1.15", 6678))
 print("Successful connection to PiRobot socket")
 
 def on_key_release(key):
-    message = '%s release'
+    exit_key = '%s' % key
+    if exit_key == '\'+\'':
+        message = 'exit'
+    else:
+        message = '%s release' % key
     message = message.encode()
     server.send(message)
     print('Released Key %s' % key)
@@ -14,7 +18,7 @@ def on_key_release(key):
     #print("Message from server : " + msg.decode())
 
 def on_key_press(key):
-    message = '%s press'
+    message = '%s press' % key
     message = message.encode()
     server.send(message)
     print('Pressed Key %s' % key)
