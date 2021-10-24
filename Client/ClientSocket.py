@@ -1,31 +1,40 @@
 import socket
+import struct
 from pynput import keyboard
 
-server = socket.socket() 
-server.connect(("10.0.1.15", 6678)) 
-print("Successful connection to PiRobot socket")
+def send_msg(sock, msg):
+    # Prefix each message with a 4-byte length (network byte order)
+    msg = struct.pack('>I', len(msg)) + msg
+    sock.sendall(msg)
 
 def on_key_release(key):
     exit_key = '%s' % key
-    if exit_key == '\'+\'':
+    if exit_key == '\'e\'':
+        message = 'close'
+    elif exit_key == '\'q\'':
         message = 'exit'
     else:
         message = '%s release' % key
+    #send_msg(client, message)
     message = message.encode()
-    server.send(message)
+    client.send(message)
     print('Released Key %s' % key)
-    #msg = server.recv(1024)
-    #print("Message from server : " + msg.decode())
 
 def on_key_press(key):
     message = '%s press' % key
+    #send_msg(client, message)
     message = message.encode()
-    server.send(message)
+    client.send(message)
     print('Pressed Key %s' % key)
-    #msg = server.recv(1024)
-    #print("Message from server : " + msg.decode())
 
-with keyboard.Listener(
-    on_press = on_key_press,
-    on_release = on_key_release) as listener:
-    listener.join()
+def client_connect(): 
+    client.settimeout(300) # seconds
+    client.connect(("192.168.1.117", 6678)) 
+    print("Successful connection to PiRobot socket")
+
+    with keyboard.Listener(on_press = on_key_press, on_release = on_key_release) as listener:
+        listener.join()
+
+# run code below
+client = socket.socket() # declare this globablly so our key presses can send messages
+client_connect()
