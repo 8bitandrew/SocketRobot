@@ -322,7 +322,7 @@ def get_ip_address(ifname):
 def start_server():
     ip_address = get_ip_address('wlan0') # assumes wlan0 connects to router
     port = 6678
-    print "Listening on ip:", ip_address, "port:", port
+    print("Listening on ip:", ip_address, "port:", port)
 
     # for remote debugging
     #debugpy.listen(('0.0.0.0', 5678))
