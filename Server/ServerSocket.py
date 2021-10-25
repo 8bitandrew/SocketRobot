@@ -155,6 +155,7 @@ class robotThread (threading.Thread):
                 break
             elif close_socket:
                 self.clear()
+                close_socket = False
             
             motor_state_mutex.acquire()
             try:
@@ -292,7 +293,6 @@ class socketThread (threading.Thread):
                             motor_state_mutex.release()
                         print(decoded_data)
             except socket.timeout:
-                    print("Client timed out...")
                     motor_state_mutex.acquire()
                     try:
                         close_socket = True
