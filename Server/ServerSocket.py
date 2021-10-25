@@ -308,16 +308,20 @@ class socketThread (threading.Thread):
                     print(type(e), e)
                     pass
 
-def get_ip_address(ifname):
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    return socket.inet_ntoa(fcntl.ioctl(
-        s.fileno(),
-        0x8915,  # SIOCGIFADDR
-        struct.pack('256s', ifname[:15])
-    )[20:24])
+def get_ip(iface = 'wlan0'):
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sockfd = sock.fileno()
+    SIOCGIFADDR = 0x8915
+    ifreq = struct.pack('16sH14s', iface, socket.AF_INET, '\x00'*14)
+    try:
+        res = fcntl.ioctl(sockfd, SIOCGIFADDR, ifreq)
+    except:
+        return None
+    ip = struct.unpack('16sH2x4s8x', res)[2]
+    return socket.inet_ntoa(ip)
 
 def start_server():
-    ip_address = get_ip_address('wlan0') # assumes wlan0 connects to router
+    ip_address = get_ip() # assumes wlan0 connects to router
     port = 6678
     print("Listening on ip:", ip_address, "port:", port)
 
