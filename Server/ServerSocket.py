@@ -211,28 +211,28 @@ class socketThread (threading.Thread):
                         print(decoded_data)
                         break
                     elif decoded_data == '\'w\' press':
-                        forwardvar = 1
+                        forwardvar = True
                         print(decoded_data)
                     elif decoded_data == '\'a\' press':
-                        leftvar = 1
+                        leftvar = True
                         print(decoded_data)
                     elif decoded_data == '\'s\' press':
-                        backwardvar = 1
+                        backwardvar = True
                         print(decoded_data)
                     elif decoded_data == '\'d\' press':
-                        rightvar = 1
+                        rightvar = True
                         print(decoded_data)
                     elif decoded_data == '\'w\' release':
-                        forwardvar = 0
+                        forwardvar = False
                         print(decoded_data)
                     elif decoded_data == '\'a\' release':
-                        leftvar = 0
+                        leftvar = False
                         print(decoded_data)
                     elif decoded_data == '\'s\' release':
-                        backwardvar = 0
+                        backwardvar = False
                         print(decoded_data)
                     elif decoded_data == '\'d\' release':
-                        rightvar = 0
+                        rightvar = False
                         print(decoded_data)
             except socket.timeout:
                     print("Client timed out...")
