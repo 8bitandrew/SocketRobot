@@ -4,7 +4,7 @@ import struct
 import debugpy
 import RPi.GPIO as gpio
 from enum import Enum
-from multiprocessing import Thread, Lock
+from multiprocessing import Lock
 
 class robotThread (threading.Thread):
     class State(Enum):
