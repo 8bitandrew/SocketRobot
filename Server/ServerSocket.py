@@ -15,8 +15,9 @@ class robotThread (threading.Thread):
             RIGHT = 4
 
     current_state = State.NONE.value
+    secondary_state_exists = False # used to indicate a second state if two states exist at once
     
-    controlled_by_username = "" # TODO eventually multiple clients will be connecting to this socket.
+    controlled_by_id = 0 # TODO eventually multiple clients will be connecting to this socket.
     # We will need to know who currently has control over the robot to avoid multiple inputs at once
 
     def __init__(self, threadID, name, counter):
@@ -92,12 +93,22 @@ class robotThread (threading.Thread):
         x_state = (leftvar and not rightvar) or (rightvar and not leftvar)
         y_state = (forwardvar and not backwardvar) or (backwardvar and not forwardvar)
         state_to_set = self.State.NONE.value
+        secondary_state_to_set = False
 
         if x_state and y_state:
-            if self.current_state == self.State.FORWARD.value:
-                state_to_set = self.State.BACKWARD.value
+            if secondary_state_exists:
+                state_to_set = current_state
+                secondary_state_to_set = secondary_state_exists
             else:
-                state_to_set = self.State.FORWARD.value
+                secondary_state_to_set = True
+                if forwardvar and self.State.FORWARD.value != current_state:
+                    state_to_set = self.State.FORWARD.value
+                elif backwardvar and self.State.BACKWARD.value != current_state:
+                    state_to_set = self.State.BACKWARD.value
+                elif leftvar and self.State.LEFT.value != current_state:
+                    state_to_set = self.State.LEFT.value
+                elif rightvar and self.State.RIGHT.value != current_state:
+                    state_to_set = self.State.RIGHT.value
         elif x_state:
             if leftvar:
                 state_to_set = self.State.LEFT.value
@@ -108,7 +119,8 @@ class robotThread (threading.Thread):
                 state_to_set = self.State.FORWARD.value
             else:
                 state_to_set = self.State.BACKWARD.value
-            
+
+        secondary_state = secondary_state_to_set
         return state_to_set
     
     def set_motors(self, new_state):
@@ -126,6 +138,7 @@ class robotThread (threading.Thread):
     def set_state(self, new_state):
         if new_state != self.current_state:
             self.set_motors(new_state)
+            self.secondary_state = current_state
             self.current_state = new_state
 
     def run(self):
@@ -208,7 +221,7 @@ class socketThread (threading.Thread):
                         client_socket.close()
                         with motor_state_mutex:
                             close_socket = True
-                        print(decoded_data)
+                        print(client_address, "disconnected")
                         break
                     elif decoded_data == 'exit':
                         client_socket.close()
