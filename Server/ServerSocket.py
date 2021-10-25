@@ -4,7 +4,7 @@ import struct
 import debugpy
 import RPi.GPIO as gpio
 from enum import Enum
-from multiprocessing import Lock
+from multiprocessing import Thread, Lock
 
 class robotThread (threading.Thread):
     class State(Enum):
@@ -159,9 +159,12 @@ class robotThread (threading.Thread):
             elif close_socket:
                 self.clear()
             
-            with motor_state_mutex:
+            motor_state_mutex.acquire()
+            try:
                 new_state = self.interpret_state()
                 self.set_state(new_state)
+            finally:
+                motor_state_mutex.release()
 
 class socketThread (threading.Thread):
     def __init__(self, ip_address, port, threadID, name, counter):
@@ -219,52 +222,85 @@ class socketThread (threading.Thread):
 
                     if decoded_data == 'close':
                         client_socket.close()
-                        with motor_state_mutex:
+                        motor_state_mutex.acquire()
+                        try:
                             close_socket = True
+                        finally:
+                            motor_state_mutex.release()
                         print(client_address, "disconnected")
                         break
                     elif decoded_data == 'exit':
                         client_socket.close()
-                        with motor_state_mutex:
+                        motor_state_mutex.acquire()
+                        try:
                             exit_program = True
+                        finally:
+                            motor_state_mutex.release()
                         print(decoded_data)
                         break
                     elif decoded_data == '\'w\' press':
-                        with motor_state_mutex:
+                        motor_state_mutex.acquire()
+                        try:
                             forwardvar = True
+                        finally:
+                            motor_state_mutex.release()
                         print(decoded_data)
                     elif decoded_data == '\'a\' press':
-                        with motor_state_mutex:
+                        motor_state_mutex.acquire()
+                        try:
                             leftvar = True
+                        finally:
+                            motor_state_mutex.release()
                         print(decoded_data)
                     elif decoded_data == '\'s\' press':
-                        with motor_state_mutex:
+                        motor_state_mutex.acquire()
+                        try:
                             backwardvar = True
+                        finally:
+                            motor_state_mutex.release()
                         print(decoded_data)
                     elif decoded_data == '\'d\' press':
-                        with motor_state_mutex:
+                        motor_state_mutex.acquire()
+                        try:
                             rightvar = True
+                        finally:
+                            motor_state_mutex.release()
                         print(decoded_data)
                     elif decoded_data == '\'w\' release':
-                        with motor_state_mutex:
+                        motor_state_mutex.acquire()
+                        try:
                             forwardvar = False
+                        finally:
+                            motor_state_mutex.release()
                         print(decoded_data)
                     elif decoded_data == '\'a\' release':
-                        with motor_state_mutex:
+                        motor_state_mutex.acquire()
+                        try:
                             leftvar = False
+                        finally:
+                            motor_state_mutex.release()
                         print(decoded_data)
                     elif decoded_data == '\'s\' release':
-                        with motor_state_mutex:
+                        motor_state_mutex.acquire()
+                        try:
                             backwardvar = False
+                        finally:
+                            motor_state_mutex.release()
                         print(decoded_data)
                     elif decoded_data == '\'d\' release':
-                        with motor_state_mutex:
+                        motor_state_mutex.acquire()
+                        try:
                             rightvar = False
+                        finally:
+                            motor_state_mutex.release()
                         print(decoded_data)
             except socket.timeout:
                     print("Client timed out...")
-                    with motor_state_mutex:
+                    motor_state_mutex.acquire()
+                    try:
                         close_socket = True
+                    finally:
+                        motor_state_mutex.release()
                     break
             except Exception as e:
                 if exit_program:
