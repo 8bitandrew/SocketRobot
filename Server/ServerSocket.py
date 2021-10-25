@@ -203,7 +203,7 @@ class socketThread (threading.Thread):
         global exit_program
         global motor_state_mutex
 
-        socket.setdefaulttimeout(300) # seconds
+        socket.setdefaulttimeout(2) # seconds
         server = socket.socket()
         server.bind((self.ip_address, self.port))
 
