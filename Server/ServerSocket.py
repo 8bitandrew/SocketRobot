@@ -275,10 +275,18 @@ class socketThread (threading.Thread):
                     print(type(e), e)
                     pass
 
+def get_ip_address(ifname):
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    return socket.inet_ntoa(fcntl.ioctl(
+        s.fileno(),
+        0x8915,  # SIOCGIFADDR
+        struct.pack('256s', ifname[:15])
+    )[20:24])
+
 def start_server():
-    # set local ip and desired port here
-    ip_address = "192.168.1.117"
+    ip_address = get_ip_address('wlan0') # assumes wlan0 connects to router
     port = 6678
+    print "Listening on ip:", ip_address, "port:", port
 
     # for remote debugging
     #debugpy.listen(('0.0.0.0', 5678))
