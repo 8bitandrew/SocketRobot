@@ -1,7 +1,4 @@
-import socket
-import threading
-import struct
-import debugpy
+import socket, threading, struct, fcntl, debugpy
 import RPi.GPIO as gpio
 from enum import Enum
 from multiprocessing import Lock
