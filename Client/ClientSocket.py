@@ -4,6 +4,7 @@ from pynput import keyboard
 
 def send_msg(sock, msg):
     # Prefix each message with a 4-byte length (network byte order)
+    msg = msg.encode()
     msg = struct.pack('>I', len(msg)) + msg
     sock.sendall(msg)
 

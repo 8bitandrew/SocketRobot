@@ -254,11 +254,10 @@ class socketThread (threading.Thread):
                         close_socket = True
                     break
             except Exception as e:
-                with motor_state_mutex:
-                    if exit_program:
-                        print(type(e), e)
-                        print("Exiting server program...")
-                        break
+                if exit_program:
+                    print(type(e), e)
+                    print("Exiting server program...")
+                    break
                 else:
                     print(type(e), e)
                     pass
