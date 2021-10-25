@@ -1,8 +1,9 @@
 import socket
 import threading
 import struct
-from enum import Enum
+import debugpy
 import RPi.GPIO as gpio
+from enum import Enum
 
 class robotThread (threading.Thread):
     class State(Enum):
@@ -23,7 +24,7 @@ class robotThread (threading.Thread):
         self.name = name
         self.counter = counter
 
-    def initialize():
+    def initialize(self):
         gpio.setmode(gpio.BOARD)
         gpio.setup(33, gpio.OUT)
         gpio.setup(36, gpio.OUT)
@@ -34,7 +35,7 @@ class robotThread (threading.Thread):
         gpio.output(33, gpio.HIGH)
         gpio.output(36, gpio.HIGH)
 
-    def clear():
+    def clear(self):
         gpio.output(35, gpio.LOW)
         gpio.output(37, gpio.LOW)
         gpio.output(38, gpio.LOW)
@@ -129,6 +130,10 @@ class robotThread (threading.Thread):
     def run(self):
         global close_socket
         global exit_program
+
+        # for remote debugging
+        debugpy.wait_for_client()
+        debugpy.breakpoint()
 
         gpio.setwarnings(False)
         self.initialize()
@@ -246,6 +251,9 @@ def start_server():
     # set local ip and desired port here
     ip_address = "192.168.1.117"
     port = 6678
+
+    # for remote debugging
+    debugpy.listen(('0.0.0.0', 5678))
 
     threads = []
     RobotThread = robotThread(1, "RobotThread", 1)
