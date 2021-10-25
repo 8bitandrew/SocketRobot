@@ -15,16 +15,12 @@ def on_key_release(key):
         message = 'exit'
     else:
         message = '%s release' % key
-    #send_msg(client, message)
-    message = message.encode()
-    client.send(message)
+    send_msg(client, message)
     print('Released Key %s' % key)
 
 def on_key_press(key):
     message = '%s press' % key
-    #send_msg(client, message)
-    message = message.encode()
-    client.send(message)
+    send_msg(client, message)
     print('Pressed Key %s' % key)
 
 def client_connect(): 

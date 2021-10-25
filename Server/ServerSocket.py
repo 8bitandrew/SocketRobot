@@ -4,6 +4,7 @@ import struct
 import debugpy
 import RPi.GPIO as gpio
 from enum import Enum
+from multiprocessing import Lock
 
 class robotThread (threading.Thread):
     class State(Enum):
@@ -130,10 +131,10 @@ class robotThread (threading.Thread):
     def run(self):
         global close_socket
         global exit_program
+        global motor_state_mutex
 
         # for remote debugging
-        debugpy.wait_for_client()
-        debugpy.breakpoint()
+        #debugpy.breakpoint()
 
         gpio.setwarnings(False)
         self.initialize()
@@ -144,9 +145,10 @@ class robotThread (threading.Thread):
                 break
             elif close_socket:
                 self.clear()
-                
-            new_state = self.interpret_state()
-            self.set_state(new_state)
+            
+            with motor_state_mutex:
+                new_state = self.interpret_state()
+                self.set_state(new_state)
 
 class socketThread (threading.Thread):
     def __init__(self, ip_address, port, threadID, name, counter):
@@ -157,7 +159,7 @@ class socketThread (threading.Thread):
         self.ip_address = ip_address
         self.port = port
 
-    def recvall(sock, n):
+    def recvall(self, sock, n):
         # Helper function to recv n bytes or return None if EOF is hit
         data = bytearray()
         while len(data) < n:
@@ -183,11 +185,14 @@ class socketThread (threading.Thread):
         global rightvar
         global close_socket
         global exit_program
+        global motor_state_mutex
 
         socket.setdefaulttimeout(300) # seconds
         server = socket.socket()
-
         server.bind((self.ip_address, self.port))
+
+        # for remote debugging
+        #debugpy.breakpoint()
 
         while not exit_program:
             try:
@@ -196,53 +201,64 @@ class socketThread (threading.Thread):
                 print(client_address, "has connected")
 
                 while True:
-                    received_data = client_socket.recv(1024)
-                    #received_data = self.recv_msg(client_socket)
+                    received_data = self.recv_msg(client_socket)
                     decoded_data = received_data.decode()
 
                     if decoded_data == 'close':
                         client_socket.close()
-                        close_socket = True
+                        with motor_state_mutex:
+                            close_socket = True
                         print(decoded_data)
                         break
                     elif decoded_data == 'exit':
                         client_socket.close()
-                        exit_program = True
+                        with motor_state_mutex:
+                            exit_program = True
                         print(decoded_data)
                         break
                     elif decoded_data == '\'w\' press':
-                        forwardvar = True
+                        with motor_state_mutex:
+                            forwardvar = True
                         print(decoded_data)
                     elif decoded_data == '\'a\' press':
-                        leftvar = True
+                        with motor_state_mutex:
+                            leftvar = True
                         print(decoded_data)
                     elif decoded_data == '\'s\' press':
-                        backwardvar = True
+                        with motor_state_mutex:
+                            backwardvar = True
                         print(decoded_data)
                     elif decoded_data == '\'d\' press':
-                        rightvar = True
+                        with motor_state_mutex:
+                            rightvar = True
                         print(decoded_data)
                     elif decoded_data == '\'w\' release':
-                        forwardvar = False
+                        with motor_state_mutex:
+                            forwardvar = False
                         print(decoded_data)
                     elif decoded_data == '\'a\' release':
-                        leftvar = False
+                        with motor_state_mutex:
+                            leftvar = False
                         print(decoded_data)
                     elif decoded_data == '\'s\' release':
-                        backwardvar = False
+                        with motor_state_mutex:
+                            backwardvar = False
                         print(decoded_data)
                     elif decoded_data == '\'d\' release':
-                        rightvar = False
+                        with motor_state_mutex:
+                            rightvar = False
                         print(decoded_data)
             except socket.timeout:
                     print("Client timed out...")
-                    close_socket = True
+                    with motor_state_mutex:
+                        close_socket = True
                     break
             except Exception as e:
-                if exit_program:
-                    print(type(e), e)
-                    print("Exiting server program...")
-                    break
+                with motor_state_mutex:
+                    if exit_program:
+                        print(type(e), e)
+                        print("Exiting server program...")
+                        break
                 else:
                     print(type(e), e)
                     pass
@@ -253,7 +269,8 @@ def start_server():
     port = 6678
 
     # for remote debugging
-    debugpy.listen(('0.0.0.0', 5678))
+    #debugpy.listen(('0.0.0.0', 5678))
+    #debugpy.wait_for_client()
 
     threads = []
     RobotThread = robotThread(1, "RobotThread", 1)
@@ -276,5 +293,6 @@ leftvar = False
 rightvar = False
 close_socket = False
 exit_program = False
+motor_state_mutex = Lock()
 
 start_server()
