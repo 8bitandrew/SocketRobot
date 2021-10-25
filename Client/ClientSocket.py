@@ -33,7 +33,7 @@ def on_key_press(key):
     print('Pressed Key %s' % key)
 
 def client_connect(): 
-    client.settimeout(2) # seconds
+    #client.settimeout(300) # seconds
     client.connect(("192.168.1.117", 6678)) 
     print("Successful connection to PiRobot socket")
 

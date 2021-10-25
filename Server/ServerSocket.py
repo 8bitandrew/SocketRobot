@@ -93,18 +93,18 @@ class robotThread (threading.Thread):
         secondary_state_to_set = False
 
         if x_state and y_state:
-            if secondary_state_exists:
-                state_to_set = current_state
-                secondary_state_to_set = secondary_state_exists
+            if self.secondary_state_exists:
+                state_to_set = self.current_state
+                secondary_state_to_set = self.secondary_state_exists
             else:
                 secondary_state_to_set = True
-                if forwardvar and self.State.FORWARD.value != current_state:
+                if forwardvar and self.State.FORWARD.value != self.current_state:
                     state_to_set = self.State.FORWARD.value
-                elif backwardvar and self.State.BACKWARD.value != current_state:
+                elif backwardvar and self.State.BACKWARD.value != self.current_state:
                     state_to_set = self.State.BACKWARD.value
-                elif leftvar and self.State.LEFT.value != current_state:
+                elif leftvar and self.State.LEFT.value != self.current_state:
                     state_to_set = self.State.LEFT.value
-                elif rightvar and self.State.RIGHT.value != current_state:
+                elif rightvar and self.State.RIGHT.value != self.current_state:
                     state_to_set = self.State.RIGHT.value
         elif x_state:
             if leftvar:
@@ -135,7 +135,7 @@ class robotThread (threading.Thread):
     def set_state(self, new_state):
         if new_state != self.current_state:
             self.set_motors(new_state)
-            self.secondary_state = current_state
+            self.secondary_state = self.current_state
             self.current_state = new_state
 
     def run(self):
@@ -201,7 +201,7 @@ class socketThread (threading.Thread):
         global exit_program
         global motor_state_mutex
 
-        socket.setdefaulttimeout(2) # seconds
+        #socket.setdefaulttimeout(300) # seconds
         server = socket.socket()
         server.bind((self.ip_address, self.port))
 
@@ -293,6 +293,7 @@ class socketThread (threading.Thread):
                             motor_state_mutex.release()
                         print(decoded_data)
             except socket.timeout:
+                    print(client_address, "timed out...")
                     motor_state_mutex.acquire()
                     try:
                         close_socket = True
