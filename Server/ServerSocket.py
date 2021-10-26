@@ -39,14 +39,6 @@ class robotThread (threading.Thread):
         gpio.output(37, gpio.LOW)
         gpio.output(38, gpio.LOW)
         gpio.output(40, gpio.LOW)
-        global forwardvar
-        global backwardvar
-        global leftvar
-        global rightvar
-        forwardvar = False
-        backwardvar = False
-        leftvar = False
-        rightvar = False
 
     def cleanup(self):
         self.clear()
@@ -82,45 +74,38 @@ class robotThread (threading.Thread):
         gpio.output(40, gpio.LOW)
     
     def interpret_state(self, forwardvar, backwardvar, leftvar, rightvar):
-        
+        x_state = (leftvar and not rightvar) or (rightvar and not leftvar)
+        y_state = (forwardvar and not backwardvar) or (backwardvar and not forwardvar)
+        state_to_set = self.State.NONE.value
+        secondary_state_to_set = False
 
-        if forwardvar:
-            return 1
-        else:
-            return 0
+        if x_state and y_state:
+            if self.secondary_state_exists:
+                state_to_set = self.current_state
+                secondary_state_to_set = self.secondary_state_exists
+            else:
+                secondary_state_to_set = True
+                if forwardvar and self.State.FORWARD.value != self.current_state:
+                    state_to_set = self.State.FORWARD.value
+                elif backwardvar and self.State.BACKWARD.value != self.current_state:
+                    state_to_set = self.State.BACKWARD.value
+                elif leftvar and self.State.LEFT.value != self.current_state:
+                    state_to_set = self.State.LEFT.value
+                elif rightvar and self.State.RIGHT.value != self.current_state:
+                    state_to_set = self.State.RIGHT.value
+        elif x_state:
+            if leftvar:
+                state_to_set = self.State.LEFT.value
+            else:
+                state_to_set = self.State.RIGHT.value
+        elif y_state:
+            if forwardvar:
+                state_to_set = self.State.FORWARD.value
+            else:
+                state_to_set = self.State.BACKWARD.value
 
-        # x_state = (leftvar and not rightvar) or (rightvar and not leftvar)
-        # y_state = (forwardvar and not backwardvar) or (backwardvar and not forwardvar)
-        # state_to_set = self.State.NONE.value
-        # secondary_state_to_set = False
-
-        # if x_state and y_state:
-        #     if self.secondary_state_exists:
-        #         state_to_set = self.current_state
-        #         secondary_state_to_set = self.secondary_state_exists
-        #     else:
-        #         secondary_state_to_set = True
-        #         if forwardvar and self.State.FORWARD.value != self.current_state:
-        #             state_to_set = self.State.FORWARD.value
-        #         elif backwardvar and self.State.BACKWARD.value != self.current_state:
-        #             state_to_set = self.State.BACKWARD.value
-        #         elif leftvar and self.State.LEFT.value != self.current_state:
-        #             state_to_set = self.State.LEFT.value
-        #         elif rightvar and self.State.RIGHT.value != self.current_state:
-        #             state_to_set = self.State.RIGHT.value
-        # elif x_state:
-        #     if leftvar:
-        #         state_to_set = self.State.LEFT.value
-        #     else:
-        #         state_to_set = self.State.RIGHT.value
-        # elif y_state:
-        #     if forwardvar:
-        #         state_to_set = self.State.FORWARD.value
-        #     else:
-        #         state_to_set = self.State.BACKWARD.value
-
-        # self.secondary_state = secondary_state_to_set
-        #return state_to_set
+        self.secondary_state = secondary_state_to_set
+        return state_to_set
     
     def set_motors(self, new_state):
         if new_state == self.State.NONE.value:
@@ -160,14 +145,15 @@ class robotThread (threading.Thread):
                 break
             elif close_socket:
                 self.clear()
+                forwardvar = False
+                backwardvar = False
+                leftvar = False
+                rightvar = False
                 close_socket = False
             
-            motor_state_mutex.acquire()
-            try:
+            with motor_state_mutex:
                 new_state = self.interpret_state(forwardvar, backwardvar, leftvar, rightvar)
                 self.set_state(new_state)
-            finally:
-                motor_state_mutex.release()
 
 class socketThread (threading.Thread):
     def __init__(self, ip_address, port, threadID, name, counter):
@@ -225,85 +211,52 @@ class socketThread (threading.Thread):
 
                     if decoded_data == 'close':
                         client_socket.close()
-                        motor_state_mutex.acquire()
-                        try:
+                        with motor_state_mutex:
                             close_socket = True
-                        finally:
-                            motor_state_mutex.release()
                         print(client_address, "disconnected")
                         break
                     elif decoded_data == 'exit':
                         client_socket.close()
-                        motor_state_mutex.acquire()
-                        try:
+                        with motor_state_mutex:
                             exit_program = True
-                        finally:
-                            motor_state_mutex.release()
                         print(decoded_data)
                         break
                     elif decoded_data == '\'w\' press':
-                        motor_state_mutex.acquire()
-                        try:
+                        with motor_state_mutex:
                             forwardvar = True
-                        finally:
-                            motor_state_mutex.release()
                         print(decoded_data)
                     elif decoded_data == '\'a\' press':
-                        motor_state_mutex.acquire()
-                        try:
+                        with motor_state_mutex:
                             leftvar = True
-                        finally:
-                            motor_state_mutex.release()
                         print(decoded_data)
                     elif decoded_data == '\'s\' press':
-                        motor_state_mutex.acquire()
-                        try:
+                        with motor_state_mutex:
                             backwardvar = True
-                        finally:
-                            motor_state_mutex.release()
                         print(decoded_data)
                     elif decoded_data == '\'d\' press':
-                        motor_state_mutex.acquire()
-                        try:
+                        with motor_state_mutex:
                             rightvar = True
-                        finally:
-                            motor_state_mutex.release()
                         print(decoded_data)
                     elif decoded_data == '\'w\' release':
-                        motor_state_mutex.acquire()
-                        try:
+                        with motor_state_mutex:
                             forwardvar = False
-                        finally:
-                            motor_state_mutex.release()
                         print(decoded_data)
                     elif decoded_data == '\'a\' release':
-                        motor_state_mutex.acquire()
-                        try:
+                        with motor_state_mutex:
                             leftvar = False
-                        finally:
-                            motor_state_mutex.release()
                         print(decoded_data)
                     elif decoded_data == '\'s\' release':
-                        motor_state_mutex.acquire()
-                        try:
+                        with motor_state_mutex:
                             backwardvar = False
-                        finally:
-                            motor_state_mutex.release()
                         print(decoded_data)
                     elif decoded_data == '\'d\' release':
-                        motor_state_mutex.acquire()
-                        try:
+                        with motor_state_mutex:
                             rightvar = False
-                        finally:
-                            motor_state_mutex.release()
                         print(decoded_data)
             except socket.timeout:
                     print(client_address, "timed out...")
-                    motor_state_mutex.acquire()
-                    try:
+                    with motor_state_mutex:
                         close_socket = True
-                    finally:
-                        motor_state_mutex.release()
                     break
             except Exception as e:
                 if exit_program:
