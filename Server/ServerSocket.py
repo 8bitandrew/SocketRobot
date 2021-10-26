@@ -117,7 +117,7 @@ class robotThread (threading.Thread):
             else:
                 state_to_set = self.State.BACKWARD.value
 
-        secondary_state = secondary_state_to_set
+        self.secondary_state = secondary_state_to_set
         return state_to_set
     
     def set_motors(self, new_state):
