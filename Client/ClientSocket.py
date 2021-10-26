@@ -1,5 +1,4 @@
-import socket
-import struct
+import socket, struct
 from pynput import keyboard
 
 def send_msg(sock, msg):
