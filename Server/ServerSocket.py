@@ -87,38 +87,43 @@ class robotThread (threading.Thread):
         global leftvar
         global rightvar
 
-        x_state = (leftvar and not rightvar) or (rightvar and not leftvar)
-        y_state = (forwardvar and not backwardvar) or (backwardvar and not forwardvar)
-        state_to_set = self.State.NONE.value
-        secondary_state_to_set = False
+        if forwardvar:
+            return 1
+        else:
+            return 0
 
-        if x_state and y_state:
-            if self.secondary_state_exists:
-                state_to_set = self.current_state
-                secondary_state_to_set = self.secondary_state_exists
-            else:
-                secondary_state_to_set = True
-                if forwardvar and self.State.FORWARD.value != self.current_state:
-                    state_to_set = self.State.FORWARD.value
-                elif backwardvar and self.State.BACKWARD.value != self.current_state:
-                    state_to_set = self.State.BACKWARD.value
-                elif leftvar and self.State.LEFT.value != self.current_state:
-                    state_to_set = self.State.LEFT.value
-                elif rightvar and self.State.RIGHT.value != self.current_state:
-                    state_to_set = self.State.RIGHT.value
-        elif x_state:
-            if leftvar:
-                state_to_set = self.State.LEFT.value
-            else:
-                state_to_set = self.State.RIGHT.value
-        elif y_state:
-            if forwardvar:
-                state_to_set = self.State.FORWARD.value
-            else:
-                state_to_set = self.State.BACKWARD.value
+        # x_state = (leftvar and not rightvar) or (rightvar and not leftvar)
+        # y_state = (forwardvar and not backwardvar) or (backwardvar and not forwardvar)
+        # state_to_set = self.State.NONE.value
+        # secondary_state_to_set = False
 
-        self.secondary_state = secondary_state_to_set
-        return state_to_set
+        # if x_state and y_state:
+        #     if self.secondary_state_exists:
+        #         state_to_set = self.current_state
+        #         secondary_state_to_set = self.secondary_state_exists
+        #     else:
+        #         secondary_state_to_set = True
+        #         if forwardvar and self.State.FORWARD.value != self.current_state:
+        #             state_to_set = self.State.FORWARD.value
+        #         elif backwardvar and self.State.BACKWARD.value != self.current_state:
+        #             state_to_set = self.State.BACKWARD.value
+        #         elif leftvar and self.State.LEFT.value != self.current_state:
+        #             state_to_set = self.State.LEFT.value
+        #         elif rightvar and self.State.RIGHT.value != self.current_state:
+        #             state_to_set = self.State.RIGHT.value
+        # elif x_state:
+        #     if leftvar:
+        #         state_to_set = self.State.LEFT.value
+        #     else:
+        #         state_to_set = self.State.RIGHT.value
+        # elif y_state:
+        #     if forwardvar:
+        #         state_to_set = self.State.FORWARD.value
+        #     else:
+        #         state_to_set = self.State.BACKWARD.value
+
+        # self.secondary_state = secondary_state_to_set
+        #return state_to_set
     
     def set_motors(self, new_state):
         if new_state == self.State.NONE.value:
