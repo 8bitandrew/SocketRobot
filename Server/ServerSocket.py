@@ -104,7 +104,7 @@ class robotThread (threading.Thread):
             else:
                 state_to_set = self.State.BACKWARD.value
 
-        self.secondary_state = secondary_state_to_set
+        self.secondary_state_exists = secondary_state_to_set
         return state_to_set
     
     def set_motors(self, new_state):
@@ -145,11 +145,12 @@ class robotThread (threading.Thread):
                 break
             elif close_socket:
                 self.clear()
-                forwardvar = False
-                backwardvar = False
-                leftvar = False
-                rightvar = False
-                close_socket = False
+                with motor_state_mutex:
+                    forwardvar = False
+                    backwardvar = False
+                    leftvar = False
+                    rightvar = False
+                    close_socket = False
             
             with motor_state_mutex:
                 new_state = self.interpret_state(forwardvar, backwardvar, leftvar, rightvar)
