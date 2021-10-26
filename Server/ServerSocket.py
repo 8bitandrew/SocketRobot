@@ -135,7 +135,6 @@ class robotThread (threading.Thread):
     def set_state(self, new_state):
         if new_state != self.current_state:
             self.set_motors(new_state)
-            self.secondary_state = self.current_state
             self.current_state = new_state
 
     def run(self):
