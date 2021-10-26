@@ -88,7 +88,7 @@ def client_connect():
     client.connect(("192.168.1.117", 6678)) 
     print("Successful connection to PiRobot socket")
 
-    with keyboard.Listener(on_press = on_key_press, on_release = on_key_release) as listener:
+    with keyboard.Listener(on_press = on_key_press, on_release = on_key_release, supress=True) as listener:
         listener.join()
 
 # run code below
