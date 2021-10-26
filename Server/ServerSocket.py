@@ -81,11 +81,8 @@ class robotThread (threading.Thread):
         gpio.output(38, gpio.HIGH)
         gpio.output(40, gpio.LOW)
     
-    def interpret_state(self):
-        global forwardvar
-        global backwardvar
-        global leftvar
-        global rightvar
+    def interpret_state(self, forwardvar, backwardvar, leftvar, rightvar):
+        
 
         if forwardvar:
             return 1
@@ -143,6 +140,10 @@ class robotThread (threading.Thread):
             self.current_state = new_state
 
     def run(self):
+        global forwardvar
+        global backwardvar
+        global leftvar
+        global rightvar
         global close_socket
         global exit_program
         global motor_state_mutex
@@ -163,7 +164,7 @@ class robotThread (threading.Thread):
             
             motor_state_mutex.acquire()
             try:
-                new_state = self.interpret_state()
+                new_state = self.interpret_state(forwardvar, backwardvar, leftvar, rightvar)
                 self.set_state(new_state)
             finally:
                 motor_state_mutex.release()
