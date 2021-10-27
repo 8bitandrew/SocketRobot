@@ -84,7 +84,7 @@ def on_exit_release(self):
     print("Exit program")
     quit()
 
-def quit(self):
+def quit():
     global quit_client
     quit_client = True
 
