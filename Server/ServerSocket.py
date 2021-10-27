@@ -222,35 +222,35 @@ class socketThread (threading.Thread):
                             exit_program = True
                         print(decoded_data)
                         break
-                    elif decoded_data == '\'w\' press':
+                    elif decoded_data == 'forward press':
                         with motor_state_mutex:
                             forwardvar = True
                         print(decoded_data)
-                    elif decoded_data == '\'a\' press':
+                    elif decoded_data == 'left press':
                         with motor_state_mutex:
                             leftvar = True
                         print(decoded_data)
-                    elif decoded_data == '\'s\' press':
+                    elif decoded_data == 'backward press':
                         with motor_state_mutex:
                             backwardvar = True
                         print(decoded_data)
-                    elif decoded_data == '\'d\' press':
+                    elif decoded_data == 'right press':
                         with motor_state_mutex:
                             rightvar = True
                         print(decoded_data)
-                    elif decoded_data == '\'w\' release':
+                    elif decoded_data == 'forward release':
                         with motor_state_mutex:
                             forwardvar = False
                         print(decoded_data)
-                    elif decoded_data == '\'a\' release':
+                    elif decoded_data == 'left release':
                         with motor_state_mutex:
                             leftvar = False
                         print(decoded_data)
-                    elif decoded_data == '\'s\' release':
+                    elif decoded_data == 'backward release':
                         with motor_state_mutex:
                             backwardvar = False
                         print(decoded_data)
-                    elif decoded_data == '\'d\' release':
+                    elif decoded_data == 'right release':
                         with motor_state_mutex:
                             rightvar = False
                         print(decoded_data)
