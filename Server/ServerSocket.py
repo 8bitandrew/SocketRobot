@@ -11,6 +11,10 @@ class robotThread (threading.Thread):
             LEFT = 3
             RIGHT = 4
 
+    side_A_pwm = State.NONE.value
+    side_B_pwm = State.NONE.value
+    current_A_speed = 100
+    current_B_speed = 100
     current_state = State.NONE.value
     secondary_state_exists = False # used to indicate a second state if two states exist at once
     
@@ -31,8 +35,11 @@ class robotThread (threading.Thread):
         gpio.setup(37, gpio.OUT)
         gpio.setup(38, gpio.OUT)
         gpio.setup(40, gpio.OUT)
-        gpio.output(33, gpio.HIGH)
-        gpio.output(36, gpio.HIGH)
+        self.side_B_pwm = gpio.PWM(33, 100)
+        self.side_A_pwm = gpio.PWM(36, 100)
+        self.side_B_pwm.start(100)
+        self.side_A_pwm.start(100)
+
 
     def clear(self):
         gpio.output(35, gpio.LOW)
@@ -42,8 +49,9 @@ class robotThread (threading.Thread):
 
     def cleanup(self):
         self.clear()
-        gpio.output(33, gpio.LOW)
-        gpio.output(36, gpio.LOW)
+        self.side_A_pwm.stop()
+        self.side_B_pwm.stop()
+        gpio.cleanup()
 
     def forward(self):
         self.clear()
@@ -119,16 +127,25 @@ class robotThread (threading.Thread):
         elif new_state == self.State.RIGHT.value:
             self.swivel_right()
     
-    def set_state(self, new_state):
+    def set_pwm_speed(self, speed):
+        self.side_A_pwm.ChangeDutyCycle(speed)
+        self.side_B_pwm.ChangeDutyCycle(speed)
+        self.current_A_speed = speed
+        self.current_B_speed = speed
+    
+    def set_state(self, new_state, speed):
         if new_state != self.current_state:
             self.set_motors(new_state)
             self.current_state = new_state
+        if speed != self.current_A_speed and speed != self.current_B_speed:
+            self.set_pwm_speed(speed)
 
     def run(self):
         global forwardvar
         global backwardvar
         global leftvar
         global rightvar
+        global speed
         global close_socket
         global exit_program
         global motor_state_mutex
@@ -150,11 +167,12 @@ class robotThread (threading.Thread):
                     backwardvar = False
                     leftvar = False
                     rightvar = False
+                    speed = 100
                     close_socket = False
             
             with motor_state_mutex:
                 new_state = self.interpret_state(forwardvar, backwardvar, leftvar, rightvar)
-                self.set_state(new_state)
+                self.set_state(new_state, speed)
 
 class socketThread (threading.Thread):
     def __init__(self, ip_address, port, threadID, name, counter):
@@ -189,6 +207,7 @@ class socketThread (threading.Thread):
         global backwardvar
         global leftvar
         global rightvar
+        global speed
         global close_socket
         global exit_program
         global motor_state_mutex
@@ -254,6 +273,22 @@ class socketThread (threading.Thread):
                         with motor_state_mutex:
                             rightvar = False
                         print(decoded_data)
+                    elif decoded_data == 'speed 25':
+                        with motor_state_mutex:
+                            speed = 25
+                        print(decoded_data)
+                    elif decoded_data == 'speed 50':
+                        with motor_state_mutex:
+                            speed = 50
+                        print(decoded_data)
+                    elif decoded_data == 'speed 75':
+                        with motor_state_mutex:
+                            speed = 75
+                        print(decoded_data)
+                    elif decoded_data == 'speed 100':
+                        with motor_state_mutex:
+                            speed = 100
+                        print(decoded_data)
             except socket.timeout:
                     print(client_address, "timed out...")
                     with motor_state_mutex:
@@ -308,6 +343,7 @@ forwardvar = False
 backwardvar = False
 leftvar = False
 rightvar = False
+speed = 100 # PWM duty cycle number
 close_socket = False
 exit_program = False
 motor_state_mutex = Lock()

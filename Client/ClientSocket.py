@@ -70,6 +70,38 @@ def on_right_release(self):
         rightvar = False
         print("Right released")
 
+def on_speed_1_release(self):
+    global speed
+    if speed != 25:
+        message = "speed 25"
+        send_msg(client, message)
+        speed = 25
+        print("Speed set to 25%")
+
+def on_speed_2_release(self):
+    global speed
+    if speed != 50:
+        message = "speed 50"
+        send_msg(client, message)
+        speed = 50
+        print("Speed set to 50%")
+
+def on_speed_3_release(self):
+    global speed
+    if speed != 75:
+        message = "speed 75"
+        send_msg(client, message)
+        speed = 75
+        print("Speed set to 75%")
+
+def on_speed_4_release(self):
+    global speed
+    if speed != 100:
+        message = "speed 100"
+        send_msg(client, message)
+        speed = 100
+        print("Speed set to 100%")
+
 def on_close_socket_release(self):
     message = "close"
     send_msg(client, message)
@@ -103,6 +135,11 @@ def client_connect():
     keyboard.on_release_key('s', on_backward_release, suppress=True)
     keyboard.on_release_key('d', on_right_release, suppress=True)
 
+    keyboard.on_release_key('1', on_speed_1_release, suppress=True)
+    keyboard.on_release_key('2', on_speed_2_release, suppress=True)
+    keyboard.on_release_key('3', on_speed_3_release, suppress=True)
+    keyboard.on_release_key('4', on_speed_4_release, suppress=True)
+
     keyboard.on_release_key('e', on_close_socket_release, suppress=True)
     keyboard.on_release_key('q', on_exit_release, suppress=True)
 
@@ -115,6 +152,7 @@ forwardvar = False
 backwardvar = False
 leftvar = False
 rightvar = False
+speed = 100
 quit_client = False
 
 client = socket.socket() # declare this globablly so our key presses can send messages
