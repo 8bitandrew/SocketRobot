@@ -114,7 +114,7 @@ def on_speed_4_release(self):
         speed = 100
         print("Speed set to 100%")
 
-def stop_all_motors(self):
+def stop_all_motors():
     global forwardvar
     global backwardvar
     global leftvar
