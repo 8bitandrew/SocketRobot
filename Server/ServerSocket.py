@@ -1,4 +1,4 @@
-import socket, threading, struct, fcntl, debugpy
+import socket, threading, struct, fcntl, debugpy, pyttsx3
 import RPi.GPIO as gpio
 from enum import Enum
 from multiprocessing import Lock
@@ -216,6 +216,8 @@ class socketThread (threading.Thread):
         server = socket.socket()
         server.bind((self.ip_address, self.port))
 
+        text_to_speech_engine = pyttsx3.init()
+
         # for remote debugging
         #debugpy.breakpoint()
 
@@ -289,6 +291,11 @@ class socketThread (threading.Thread):
                         with motor_state_mutex:
                             speed = 100
                         print(decoded_data)
+                    elif 'speech:' in decoded_data:
+                        text = decoded_data.split(':')[1]
+                        text_to_speech_engine.say(text)
+                        text_to_speech_engine.runAndWait()
+
             except socket.timeout:
                     print(client_address, "timed out...")
                     with motor_state_mutex:

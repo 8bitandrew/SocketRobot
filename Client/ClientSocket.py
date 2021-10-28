@@ -8,7 +8,8 @@ def send_msg(sock, msg):
 
 def on_forward_press(self):
     global forwardvar
-    if not forwardvar:
+    global input_mode
+    if not forwardvar and not input_mode:
         message = "forward press"
         send_msg(client, message)
         forwardvar = True
@@ -16,7 +17,8 @@ def on_forward_press(self):
 
 def on_backward_press(self):
     global backwardvar
-    if not backwardvar:
+    global input_mode
+    if not backwardvar and not input_mode:
         message = "backward press"
         send_msg(client, message)
         backwardvar = True
@@ -24,7 +26,8 @@ def on_backward_press(self):
 
 def on_left_press(self):
     global leftvar
-    if not leftvar:
+    global input_mode
+    if not leftvar and not input_mode:
         message = "left press"
         send_msg(client, message)
         leftvar = True
@@ -32,7 +35,8 @@ def on_left_press(self):
 
 def on_right_press(self):
     global rightvar
-    if not rightvar:
+    global input_mode
+    if not rightvar and not input_mode:
         message = "right press"
         send_msg(client, message)
         rightvar = True
@@ -40,7 +44,8 @@ def on_right_press(self):
 
 def on_forward_release(self):
     global forwardvar
-    if forwardvar:
+    global input_mode
+    if forwardvar and not input_mode:
         message = "forward release"
         send_msg(client, message)
         forwardvar = False
@@ -48,7 +53,8 @@ def on_forward_release(self):
 
 def on_backward_release(self):
     global backwardvar
-    if backwardvar:
+    global input_mode
+    if backwardvar and not input_mode:
         message = "backward release"
         send_msg(client, message)
         backwardvar = False
@@ -56,7 +62,8 @@ def on_backward_release(self):
 
 def on_left_release(self):
     global leftvar
-    if leftvar:
+    global input_mode
+    if leftvar and not input_mode:
         message = "left release"
         send_msg(client, message)
         leftvar = False
@@ -64,7 +71,8 @@ def on_left_release(self):
 
 def on_right_release(self):
     global rightvar
-    if rightvar:
+    global input_mode
+    if rightvar and not input_mode:
         message = "right release"
         send_msg(client, message)
         rightvar = False
@@ -72,7 +80,8 @@ def on_right_release(self):
 
 def on_speed_1_release(self):
     global speed
-    if speed != 25:
+    global input_mode
+    if speed != 25 and not input_mode:
         message = "speed 25"
         send_msg(client, message)
         speed = 25
@@ -80,7 +89,8 @@ def on_speed_1_release(self):
 
 def on_speed_2_release(self):
     global speed
-    if speed != 50:
+    global input_mode
+    if speed != 50 and not input_mode:
         message = "speed 50"
         send_msg(client, message)
         speed = 50
@@ -88,7 +98,8 @@ def on_speed_2_release(self):
 
 def on_speed_3_release(self):
     global speed
-    if speed != 75:
+    global input_mode
+    if speed != 75 and not input_mode:
         message = "speed 75"
         send_msg(client, message)
         speed = 75
@@ -96,11 +107,37 @@ def on_speed_3_release(self):
 
 def on_speed_4_release(self):
     global speed
-    if speed != 100:
+    global input_mode
+    if speed != 100 and not input_mode:
         message = "speed 100"
         send_msg(client, message)
         speed = 100
         print("Speed set to 100%")
+
+def stop_all_motors(self):
+    global forwardvar
+    global backwardvar
+    global leftvar
+    global rightvar
+
+    if forwardvar:
+        on_forward_release()
+    if backwardvar:
+        on_backward_release()
+    if leftvar:
+        on_left_release()
+    if rightvar:
+        on_right_release()
+
+def on_text_to_speech(self):
+    global input_mode
+    stop_all_motors()
+    input_mode = True
+    message = "speech:"
+    message += input("Enter text for robot to say: ")
+    send_msg(client, message)
+    input_mode = False
+    print("Sent text to robot")
 
 def on_close_socket_release(self):
     message = "close"
@@ -140,6 +177,8 @@ def client_connect():
     keyboard.on_release_key('3', on_speed_3_release, suppress=True)
     keyboard.on_release_key('4', on_speed_4_release, suppress=True)
 
+    keyboard.on_press_key('t', on_text_to_speech, supress=True)
+
     keyboard.on_release_key('e', on_close_socket_release, suppress=True)
     keyboard.on_release_key('q', on_exit_release, suppress=True)
 
@@ -153,6 +192,7 @@ backwardvar = False
 leftvar = False
 rightvar = False
 speed = 100
+input_mode = False
 quit_client = False
 
 client = socket.socket() # declare this globablly so our key presses can send messages
