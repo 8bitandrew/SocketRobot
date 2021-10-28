@@ -177,7 +177,7 @@ def client_connect():
     keyboard.on_release_key('3', on_speed_3_release, suppress=True)
     keyboard.on_release_key('4', on_speed_4_release, suppress=True)
 
-    keyboard.on_press_key('t', on_text_to_speech, supress=True)
+    keyboard.on_press_key('t', on_text_to_speech, suppress=True)
 
     keyboard.on_release_key('e', on_close_socket_release, suppress=True)
     keyboard.on_release_key('q', on_exit_release, suppress=True)
