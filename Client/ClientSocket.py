@@ -1,4 +1,4 @@
-import socket, struct, keyboard
+import socket, struct, keyboard, os
 
 def send_msg(sock, msg):
     # Prefix each message with a 4-byte length (network byte order)
@@ -131,43 +131,42 @@ def stop_all_motors():
 
 def on_text_to_speech_enqueue(self):
     global input_mode
-    global text_queue
-    stop_all_motors()
-    input_mode = True
-    message = "speech:"
-    text = input("Add text to robot queue: ")
-    if not text.isspace():
-        message += text
-        text_queue.append(message)
-        input_mode = False
-        print("Added to text queue: ", text)
+    if not input_mode:
+        stop_all_motors()
+        input_mode = True
 
 def on_text_to_speech_dequeue(self):
     global text_queue
-    if text_queue:
+    global input_mode
+    if not input_mode and text_queue:
         message = text_queue.pop(0)
         send_msg(client, message)
         print("Top text queue message sent")
 
 def clear_text_queue(self):
     global text_queue
-    if text_queue:
+    global input_mode
+    if not input_mode and text_queue:
         text_queue = []
         print("Text queue cleared")
 
 def on_close_socket_release(self):
-    message = "close"
-    send_msg(client, message)
-    client.close()
-    print("Close socket")
-    quit()
+    global input_mode
+    if not input_mode:
+        message = "close"
+        send_msg(client, message)
+        client.close()
+        print("Close socket")
+        quit()
 
 def on_exit_release(self):
-    message = "exit"
-    send_msg(client, message)
-    client.close()
-    print("Exit program")
-    quit()
+    global input_mode
+    if not input_mode:
+        message = "exit"
+        send_msg(client, message)
+        client.close()
+        print("Exit program")
+        quit()
 
 def quit():
     global quit_client
@@ -178,30 +177,40 @@ def client_connect():
     client.connect(("192.168.1.117", 6678)) 
     print("Successful connection to PiRobot socket")
 
-    keyboard.on_press_key('w', on_forward_press, suppress=True)
-    keyboard.on_press_key('a', on_left_press, suppress=True)
-    keyboard.on_press_key('s', on_backward_press, suppress=True)
-    keyboard.on_press_key('d', on_right_press, suppress=True)
+    keyboard.on_press_key('w', on_forward_press)
+    keyboard.on_press_key('a', on_left_press)
+    keyboard.on_press_key('s', on_backward_press)
+    keyboard.on_press_key('d', on_right_press)
 
-    keyboard.on_release_key('w', on_forward_release, suppress=True)
-    keyboard.on_release_key('a', on_left_release, suppress=True)
-    keyboard.on_release_key('s', on_backward_release, suppress=True)
-    keyboard.on_release_key('d', on_right_release, suppress=True)
+    keyboard.on_release_key('w', on_forward_release)
+    keyboard.on_release_key('a', on_left_release)
+    keyboard.on_release_key('s', on_backward_release)
+    keyboard.on_release_key('d', on_right_release)
 
-    keyboard.on_release_key('1', on_speed_1_release, suppress=True)
-    keyboard.on_release_key('2', on_speed_2_release, suppress=True)
-    keyboard.on_release_key('3', on_speed_3_release, suppress=True)
-    keyboard.on_release_key('4', on_speed_4_release, suppress=True)
+    keyboard.on_release_key('1', on_speed_1_release)
+    keyboard.on_release_key('2', on_speed_2_release)
+    keyboard.on_release_key('3', on_speed_3_release)
+    keyboard.on_release_key('4', on_speed_4_release)
 
-    keyboard.on_press_key('t', on_text_to_speech_enqueue, suppress=True)
-    keyboard.on_press_key('f', on_text_to_speech_dequeue, suppress=True)
-    keyboard.on_press_key('g', clear_text_queue, suppress=True)
+    keyboard.on_press_key('t', on_text_to_speech_enqueue)
+    keyboard.on_press_key('f', on_text_to_speech_dequeue)
+    keyboard.on_press_key('g', clear_text_queue)
 
-    keyboard.on_release_key('e', on_close_socket_release, suppress=True)
-    keyboard.on_release_key('q', on_exit_release, suppress=True)
+    keyboard.on_release_key('e', on_close_socket_release)
+    keyboard.on_release_key('q', on_exit_release)
 
+    global input_mode
+    global text_queue
     while not quit_client:
-        pass
+        if input_mode:
+            message = "speech:"
+            text = input("Add text to robot queue: ")
+            if not text.isspace():
+                message += text
+                text_queue.append(message)
+                print("Added to text queue: ", text)
+            input_mode = False
+            
 
 # run code below
 # we need to know the state these are in so that we aren't spamming the server with the same key
