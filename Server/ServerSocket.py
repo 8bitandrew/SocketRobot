@@ -1,5 +1,6 @@
 import socket, threading, struct, fcntl, debugpy, pyttsx3
 import RPi.GPIO as gpio
+import VideoStream as videostream
 from enum import Enum
 from multiprocessing import Lock
 
@@ -217,6 +218,8 @@ class socketThread (threading.Thread):
         server.bind((self.ip_address, self.port))
 
         text_to_speech_engine = pyttsx3.init()
+
+        videostream.start()
 
         # for remote debugging
         #debugpy.breakpoint()
