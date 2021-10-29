@@ -129,15 +129,31 @@ def stop_all_motors():
     if rightvar:
         on_right_release()
 
-def on_text_to_speech(self):
+def on_text_to_speech_enqueue(self):
     global input_mode
+    global text_queue
     stop_all_motors()
     input_mode = True
     message = "speech:"
-    message += input("Enter text for robot to say: ")
-    send_msg(client, message)
-    input_mode = False
-    print("Sent text to robot")
+    text = input("Add text to robot queue: ")
+    if not text.isspace():
+        message += text
+        text_queue.append(message)
+        input_mode = False
+        print("Added to text queue: ", text)
+
+def on_text_to_speech_dequeue(self):
+    global text_queue
+    if text_queue:
+        message = text_queue.pop(0)
+        send_msg(client, message)
+        print("Top text queue message sent")
+
+def clear_text_queue(self):
+    global text_queue
+    if text_queue:
+        text_queue = []
+        print("Text queue cleared")
 
 def on_close_socket_release(self):
     message = "close"
@@ -177,7 +193,9 @@ def client_connect():
     keyboard.on_release_key('3', on_speed_3_release, suppress=True)
     keyboard.on_release_key('4', on_speed_4_release, suppress=True)
 
-    keyboard.on_press_key('t', on_text_to_speech, suppress=True)
+    keyboard.on_press_key('t', on_text_to_speech_enqueue, suppress=True)
+    keyboard.on_press_key('f', on_text_to_speech_dequeue, suppress=True)
+    keyboard.on_press_key('g', clear_text_queue, suppress=True)
 
     keyboard.on_release_key('e', on_close_socket_release, suppress=True)
     keyboard.on_release_key('q', on_exit_release, suppress=True)
@@ -193,6 +211,7 @@ leftvar = False
 rightvar = False
 speed = 100
 input_mode = False
+text_queue = []
 quit_client = False
 
 client = socket.socket() # declare this globablly so our key presses can send messages
