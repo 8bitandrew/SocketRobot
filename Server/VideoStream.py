@@ -48,6 +48,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(content)
         elif self.path == '/stream.mjpg':
+            global output
             self.send_response(200)
             self.send_header('Age', 0)
             self.send_header('Cache-Control', 'no-cache, private')
@@ -78,6 +79,7 @@ class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
     daemon_threads = True
 
 def start():
+    global output
     with picamera.PiCamera(resolution='640x480', framerate=32) as camera:
         output = StreamingOutput()
         #Uncomment the next line to change your Pi's Camera rotation (in degrees)
