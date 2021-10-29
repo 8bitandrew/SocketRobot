@@ -213,13 +213,10 @@ class socketThread (threading.Thread):
         global exit_program
         global motor_state_mutex
 
-        #socket.setdefaulttimeout(300) # seconds
         server = socket.socket()
         server.bind((self.ip_address, self.port))
 
         text_to_speech_engine = pyttsx3.init()
-
-        videostream.start()
 
         # for remote debugging
         #debugpy.breakpoint()
@@ -230,6 +227,7 @@ class socketThread (threading.Thread):
                 client_socket, client_address = server.accept()
                 print(client_address, "has connected")
 
+                # TODO Eventually fork this and start the listen loop over?
                 while True:
                     received_data = self.recv_msg(client_socket)
                     decoded_data = received_data.decode()
@@ -313,6 +311,17 @@ class socketThread (threading.Thread):
                     print(type(e), e)
                     pass
 
+class videoStreamThread (threading.Thread):
+    def __init__(self, threadID, name, counter):
+        threading.Thread.__init__(self)
+        self.threadID = threadID
+        self.name = name
+        self.counter = counter
+    
+    def run():
+        print("Starting videostream...")
+        videostream.start()
+
 def get_ip(iface = 'wlan0'):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sockfd = sock.fileno()
@@ -328,7 +337,7 @@ def get_ip(iface = 'wlan0'):
 def start_server():
     ip_address = get_ip() # assumes wlan0 connects to router
     port = 6678
-    print("Listening on ip:", ip_address, "port:", port)
+    print("Starting on ip:", ip_address, "port:", port)
 
     # for remote debugging
     #debugpy.listen(('0.0.0.0', 5678))
@@ -336,12 +345,15 @@ def start_server():
 
     threads = []
     RobotThread = robotThread(1, "RobotThread", 1)
-    SocketThread = socketThread(ip_address, port, 2, "SocketThread", 2)
+    VideoStreamThread = videoStreamThread(2, "VideoStreamThread", 2)
+    SocketThread = socketThread(ip_address, port, 3, "SocketThread", 3)
 
     RobotThread.start()
+    VideoStreamThread.start()
     SocketThread.start()
 
     threads.append(RobotThread)
+    threads.append(VideoStreamThread)
     threads.append(SocketThread)
     for t in threads:
         t.join()
