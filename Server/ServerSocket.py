@@ -318,7 +318,7 @@ class videoStreamThread (threading.Thread):
         self.name = name
         self.counter = counter
     
-    def run():
+    def run(self):
         print("Starting videostream...")
         videostream.start()
 
