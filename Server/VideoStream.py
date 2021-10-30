@@ -11,7 +11,6 @@ PAGE="""\
 <title>PiBot Stream</title>
 </head>
 <body>
-<center><h1>Andrew's PiBot Stream</h1></center>
 <center><img src="stream.mjpg" width="640" height="480"></center>
 </body>
 </html>
