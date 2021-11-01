@@ -236,7 +236,6 @@ class socketThread (threading.Thread):
                         client_socket.close()
                         with motor_state_mutex:
                             close_socket = True
-                        videostream.stop()
                         print(client_address, "disconnected")
                         break
                     elif decoded_data == 'exit':

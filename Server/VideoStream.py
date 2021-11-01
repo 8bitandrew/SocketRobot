@@ -79,6 +79,7 @@ class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
 
 def start():
     global output
+    global server
     with picamera.PiCamera(resolution='640x480', framerate=32) as camera:
         output = StreamingOutput()
         #Uncomment the next line to change your Pi's Camera rotation (in degrees)
@@ -91,5 +92,7 @@ def start():
         finally:
             camera.stop_recording()
 
+# Don't call this method from the same thread that start() is called in or you risk deadlocking
 def stop():
-    server.server_close()
+    global server
+    server.shutdown()
