@@ -350,8 +350,8 @@ def start_server():
     SocketThread = socketThread(ip_address, port, 3, "SocketThread", 3)
 
     RobotThread.start()
-    VideoStreamThread.start()
     SocketThread.start()
+    VideoStreamThread.start()
 
     threads.append(RobotThread)
     threads.append(VideoStreamThread)
