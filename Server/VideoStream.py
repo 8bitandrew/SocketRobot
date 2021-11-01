@@ -90,3 +90,6 @@ def start():
             server.serve_forever()
         finally:
             camera.stop_recording()
+
+def stop():
+    server.server_close()
